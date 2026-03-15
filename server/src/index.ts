@@ -95,6 +95,7 @@ import {
   getSubscription,
   handleWebhook,
   previewSubscriptionUpdate,
+  submitCancellationFeedback,
   updateSubscription,
 } from "./api/stripe/index.js";
 import {
@@ -356,6 +357,7 @@ async function stripeAdminRoutes(fastify: FastifyInstance) {
     fastify.post("/stripe/update-subscription", authOnly, updateSubscription);
     fastify.get("/stripe/subscription", authOnly, getSubscription);
     fastify.get("/stripe/invoices", authOnly, getInvoices);
+    fastify.post("/stripe/cancellation-feedback", authOnly, submitCancellationFeedback);
     fastify.post("/stripe/webhook", { config: { rawBody: true } }, handleWebhook); // Public - Stripe webhook
 
     // Admin Routes
