@@ -88,7 +88,6 @@ export function PaidPlan() {
   };
 
   const handleChangePlan = () => setShowPlanDialog(true);
-  const handleViewSubscription = () => createPortalSession();
   const handleCancelSubscription = () => createPortalSession("subscription_cancel");
 
   const getFormattedPrice = () => {
@@ -144,9 +143,6 @@ export function PaidPlan() {
               <div className="space-x-2">
                 <Button variant="success" onClick={handleChangePlan}>
                   Change Plan
-                </Button>
-                <Button variant="outline" onClick={handleViewSubscription} disabled={isProcessing}>
-                  View Details
                 </Button>
               </div>
             </div>
