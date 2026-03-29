@@ -1,6 +1,6 @@
 {
-  "id": "372ba8dc-511d-480e-b745-28cdc242cea8",
-  "prevId": "baa8de49-1e74-469d-8311-ec3ec304fd1c",
+  "id": "01633710-e3a8-4cf3-96d7-5c4c9150edbd",
+  "prevId": "372ba8dc-511d-480e-b745-28cdc242cea8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -827,12 +827,11 @@
           "notNull": false,
           "default": "'[]'::jsonb"
         },
-        "team_ids": {
-          "name": "team_ids",
-          "type": "jsonb",
+        "teamId": {
+          "name": "teamId",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
+          "notNull": false
         }
       },
       "indexes": {},
@@ -861,6 +860,19 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "invitation_teamId_team_id_fk": {
+          "name": "invitation_teamId_team_id_fk",
+          "tableFrom": "invitation",
+          "tableTo": "team",
+          "columnsFrom": [
+            "teamId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },

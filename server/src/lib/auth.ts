@@ -9,7 +9,7 @@ import { apiKey } from "@better-auth/api-key"
 
 import { db } from "../db/postgres/postgres.js";
 import * as schema from "../db/postgres/schema.js";
-import { invitation, member, memberSiteAccess, teamMember, user } from "../db/postgres/schema.js";
+import { invitation, member, memberSiteAccess, user } from "../db/postgres/schema.js";
 import { DISABLE_SIGNUP, IS_CLOUD } from "./const.js";
 import { addContactToAudience, sendInvitationEmail, sendOtpEmail, sendWelcomeEmail } from "./email/email.js";
 import { onboardingTipsService } from "../services/onboardingTips/onboardingTipsService.js";
@@ -220,21 +220,20 @@ export const auth = betterAuth({
           const invitationId = body?.invitationId;
 
           if (invitationId) {
-            // Query the invitation to get site access settings, team assignments, and org/email info
+            // Query the invitation to get site access settings and org/email info
             const invitationRecord = await db
               .select({
                 organizationId: invitation.organizationId,
                 email: invitation.email,
                 hasRestrictedSiteAccess: invitation.hasRestrictedSiteAccess,
                 siteIds: invitation.siteIds,
-                teamIds: invitation.teamIds,
               })
               .from(invitation)
               .where(eq(invitation.id, invitationId))
               .limit(1);
 
             if (invitationRecord.length > 0) {
-              const { organizationId, email, hasRestrictedSiteAccess, siteIds, teamIds } = invitationRecord[0];
+              const { organizationId, email, hasRestrictedSiteAccess, siteIds } = invitationRecord[0];
               const userRecord = await db.select({ id: user.id }).from(user).where(eq(user.email, email)).limit(1);
 
               if (userRecord.length > 0) {
@@ -264,19 +263,6 @@ export const auth = betterAuth({
                           }))
                         );
                       }
-                    }
-
-                    // Copy team assignments
-                    const teamIdArray = (teamIds || []) as string[];
-                    if (teamIdArray.length > 0) {
-                      await tx.insert(teamMember).values(
-                        teamIdArray.map(teamId => ({
-                          id: crypto.randomUUID(),
-                          teamId,
-                          userId,
-                          createdAt: new Date().toISOString(),
-                        }))
-                      );
                     }
                   }
                 });

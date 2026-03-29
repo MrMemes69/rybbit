@@ -55,7 +55,7 @@ export function InviteMemberDialog({ organizationId, onSuccess, memberCount }: I
   const [role, setRole] = useState<"admin" | "member" | "owner">("member");
   const [restrictSiteAccess, setRestrictSiteAccess] = useState(false);
   const [selectedSiteIds, setSelectedSiteIds] = useState<number[]>([]);
-  const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("none");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
 
@@ -67,19 +67,18 @@ export function InviteMemberDialog({ organizationId, onSuccess, memberCount }: I
         role,
         organizationId,
         resend: true,
+        ...(selectedTeamId && selectedTeamId !== "none" ? { teamId: selectedTeamId } : {}),
       });
 
-      // Update invitation with site access restrictions and/or team assignments
-      const hasTeamAssignments = selectedTeamIds.length > 0;
+      // Update invitation with site access restrictions
       const hasSiteRestrictions = role === "member" && restrictSiteAccess;
 
-      if ((hasSiteRestrictions || hasTeamAssignments) && result.data?.id) {
+      if (hasSiteRestrictions && result.data?.id) {
         await authedFetch(`/organizations/${organizationId}/invitations/${result.data.id}/sites`, undefined, {
           method: "PUT",
           data: {
-            hasRestrictedSiteAccess: hasSiteRestrictions,
-            siteIds: hasSiteRestrictions ? selectedSiteIds : [],
-            teamIds: selectedTeamIds,
+            hasRestrictedSiteAccess: true,
+            siteIds: selectedSiteIds,
           },
         });
       }
@@ -95,7 +94,7 @@ export function InviteMemberDialog({ organizationId, onSuccess, memberCount }: I
       setRole("member");
       setRestrictSiteAccess(false);
       setSelectedSiteIds([]);
-      setSelectedTeamIds([]);
+      setSelectedTeamId("none");
       setError("");
     },
     onError: (err: any) => {
@@ -214,33 +213,23 @@ export function InviteMemberDialog({ organizationId, onSuccess, memberCount }: I
 
           {teams.length > 0 && (
             <div className="grid gap-2">
-              <Label>{t("Teams")}</Label>
+              <Label>{t("Team")}</Label>
+              <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("No team")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t("No team")}</SelectItem>
+                  {teams.map(team => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <p className="text-xs text-muted-foreground">
-                {t("Optionally add this member to teams when they accept the invitation.")}
+                {t("Optionally add this member to a team when they accept the invitation.")}
               </p>
-              <div className="border rounded-lg divide-y max-h-40 overflow-y-auto">
-                {teams.map(team => (
-                  <div key={team.id} className="flex items-center space-x-3 p-2.5 hover:bg-muted/50">
-                    <Checkbox
-                      id={`team-${team.id}`}
-                      checked={selectedTeamIds.includes(team.id)}
-                      onCheckedChange={() => {
-                        setSelectedTeamIds(prev =>
-                          prev.includes(team.id)
-                            ? prev.filter(id => id !== team.id)
-                            : [...prev, team.id]
-                        );
-                      }}
-                    />
-                    <Label htmlFor={`team-${team.id}`} className="flex-1 cursor-pointer text-sm">
-                      <span className="font-medium">{team.name}</span>
-                      <span className="text-muted-foreground ml-2">
-                        {t("{count} sites", { count: String(team.sites.length) })}
-                      </span>
-                    </Label>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
